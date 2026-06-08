@@ -1,17 +1,67 @@
-# Mnemosyne
+# Daedalus
 
-**Portable Memory Operating Layer**
+**Standalone Mnemosyne Factory Workshop**
 
-## Product Sentence
+Daedalus is the autonomous software factory for building and maintaining Mnemosyne / Life.
 
-Mnemosyne should remember what the user has forgotten and explain why it matters.
+It is not the user-facing memory app. It is the workshop UI and control layer for:
 
-## Core Promise
+- reading implementation issues
+- producing plans
+- tracking branches and pull requests
+- displaying test results
+- generating agent reports
+- enforcing Themis approval gates
+- surfacing safety blocks
+- recording model and cost activity
 
-Capture once. Understand forever.
+## Product Boundary
+
+```txt
+Life / Mnemosyne = the memory operating layer
+Daedalus         = the workshop that builds and maintains it
+Themis           = the final approval gate
+```
+
+## Workflow
+
+```txt
+Issue
+→ Plan
+→ Branch
+→ Code
+→ Tests
+→ Agent Report
+→ PR
+→ Themis Review
+→ Human approval where required
+```
+
+## Safety Defaults
+
+Daedalus starts in safe mode.
+
+Disabled by default:
+
+- production deployment
+- autonomous merging
+- secret rotation
+- auth redesign
+- storage redesign
+- destructive migrations
+- evidence deletion
+- audit-log deletion
+- sending sensitive evidence to cloud AI
+
+## Initial Stack
+
+- `apps/web` — standalone workshop UI
+- `apps/api` — factory API / GitHub bridge
+- `prompts` — Mnemosyne Factory operating prompt
+- `agents` — Daedalus, Athena, Argus, Aegis, Iris, Chronos, Morpheus, Themis
+- `workflows` — task, review and release policies
+- `reports` — agent reports
 
 ## Status
 
-Foundation repository.
-
-See Issue #1 for Mnemosyne Factory governance bootstrap.
+Bootstrap scaffold. No dangerous automation is enabled.
