@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Daedalus System Dashboard — Real-time visibility into workflow, agents, and memory">
+  <title>Daedalus Dashboard — System Control Center</title>
+  
+  <style>
+    /* ════════════════════════════════════════════════════════════════════════════════ */
+    /* DAEDALUS DASHBOARD — EMBEDDED STYLESHEET                                         */
+    /* ════════════════════════════════════════════════════════════════════════════════ */
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       1. CSS VARIABLES & THEMING
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    :root {
+      /* Dark theme palette */
+      --bg-primary: #0a0e27;
+      --bg-surface: #1a1f3a;
+      --bg-hover: #252d4a;
+      --border: #2a2f4a;
+      --text-primary: #e0e6ff;
+      --text-secondary: #a0a6c0;
+      --accent: #4a90ff;
+      --accent-hover: #6aa0ff;
+      
+      /* 8-role color map */
+      --role-mnemosyne: #4a90ff;
+      --role-themis: #ffd700;
+      --role-aegis: #ff4444;
+      --role-athena: #44ff44;
+      --role-chronos: #ff88ff;
+      --role-argus: #ffaa44;
+      --role-iris: #ff6699;
+      --role-morpheus: #88ddff;
+      
+      /* Status colors */
+      --status-idle: #888888;
+      --status-busy: #ffaa00;
+      --status-blocked: #ff4444;
+      --status-nominal: #44ff44;
+      --status-degraded: #ffaa44;
+      --status-critical: #ff4444;
+      
+      /* Priority colors */
+      --priority-high: #ff4444;
+      --priority-medium: #ffaa44;
+      --priority-low: #44ff44;
+      
+      /* Typography */
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Courier, monospace;
+      --font-size-base: 14px;
+      --font-size-sm: 12px;
+      --font-size-lg: 16px;
+      --font-size-xl: 20px;
+      
+      /* Spacing */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      
+      /* Border radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 12px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       2. RESET & GLOBAL STYLES
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-family);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       3. HEADER & NAVIGATION
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: var(--spacing-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      box-shadow: var(--shadow-md);
+    }
+    
+    header h1 {
+      font-size: var(--font-size-xl);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      flex: 1;
+    }
+    
+    .header-controls {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .status-badge {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      background: rgba(68, 255, 68, 0.15);
+      color: var(--status-nominal);
+      border: 1px solid var(--status-nominal);
+    }
+    
+    .last-sync {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       4. TAB NAVIGATION (CSS :checked)
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-primary);
+      position: sticky;
+      top: 70px;
+      z-index: 90;
+      flex-wrap: wrap;
+    }
+    
+    .tab-nav input[type="radio"] {
+      display: none;
+    }
+    
+    .tab-nav label {
+      flex: 1;
+      min-width: 80px;
+      padding: var(--spacing-md);
+      text-align: center;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    
+    .tab-nav label:hover {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+    
+    .tab-nav input[type="radio"]:checked + label {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       5. TAB CONTENT (CSS Display Control)
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .tab-content {
+      padding: var(--spacing-lg);
+    }
+    
+    .tab-panel {
+      display: none;
+    }
+    
+    #tab-overview:checked ~ .tab-content #panel-overview,
+    #tab-issues:checked ~ .tab-content #panel-issues,
+    #tab-prs:checked ~ .tab-content #panel-prs,
+    #tab-tasks:checked ~ .tab-content #panel-tasks,
+    #tab-memory:checked ~ .tab-content #panel-memory {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       6. CARDS & CONTAINERS
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+    }
+    
+    .card-subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      margin-top: var(--spacing-xs);
+    }
+    
+    .card-content {
+      display: grid;
+      gap: var(--spacing-sm);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       7. BADGES & INDICATORS
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .badge {
+      display: inline-block;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .badge-status {
+      background: rgba(136, 136, 136, 0.2);
+      color: var(--status-idle);
+    }
+    
+    .badge-status.busy {
+      background: rgba(255, 170, 0, 0.2);
+      color: var(--status-busy);
+    }
+    
+    .badge-status.blocked {
+      background: rgba(255, 68, 68, 0.2);
+      color: var(--status-blocked);
+    }
+    
+    .badge-health {
+      background: rgba(68, 255, 68, 0.2);
+      color: var(--status-nominal);
+    }
+    
+    .badge-health.degraded {
+      background: rgba(255, 170, 68, 0.2);
+      color: var(--status-degraded);
+    }
+    
+    .badge-health.critical {
+      background: rgba(255, 68, 68, 0.2);
+      color: var(--status-critical);
+    }
+    
+    .badge-priority {
+      background: rgba(255, 68, 68, 0.2);
+      color: var(--priority-high);
+    }
+    
+    .badge-priority.medium {
+      background: rgba(255, 170, 68, 0.2);
+      color: var(--priority-medium);
+    }
+    
+    .badge-priority.low {
+      background: rgba(68, 255, 68, 0.2);
+      color: var(--priority-low);
+    }
+    
+    .status-icon {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: var(--spacing-xs);
+      vertical-align: middle;
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       8. GRIDS & LAYOUTS
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .role-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .role-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    
+    .role-name {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .role-meta {
+      display: grid;
+      gap: var(--spacing-xs);
+      font-size: var(--font-size-sm);
+    }
+    
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--spacing-xs) 0;
+    }
+    
+    .meta-label {
+      color: var(--text-secondary);
+    }
+    
+    .meta-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       9. PROGRESS BAR
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: var(--bg-hover);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--bg-primary);
+    }
+    
+    progress {
+      width: 100%;
+      height: 20px;
+      border-radius: var(--radius-sm);
+      appearance: none;
+      border: 1px solid var(--border);
+    }
+    
+    progress::-webkit-progress-bar {
+      background: var(--bg-hover);
+      border-radius: var(--radius-sm);
+    }
+    
+    progress::-webkit-progress-value {
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: var(--radius-sm);
+    }
+    
+    progress::-moz-progress-bar {
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: var(--radius-sm);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       10. TABLES
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .table-responsive {
+      overflow-x: auto;
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      background: var(--bg-hover);
+      border-bottom: 2px solid var(--border);
+    }
+    
+    th {
+      padding: var(--spacing-sm) var(--spacing-md);
+      text-align: left;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+    
+    td {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid var(--border);
+      font-size: var(--font-size-sm);
+    }
+    
+    tr:hover {
+      background: var(--bg-hover);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       11. FORM ELEMENTS
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .search-box {
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    input[type="search"],
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: var(--font-size-base);
+    }
+    
+    input[type="search"]:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74, 144, 255, 0.1);
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       12. RESPONSIVE BREAKPOINTS
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    @media (max-width: 599px) {
+      .tab-nav {
+        top: 100px;
+      }
+      
+      .tab-nav label {
+        flex: 1;
+        min-width: auto;
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-sm);
+      }
+      
+      .role-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .meta-row {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+      }
+      
+      .table-responsive {
+        font-size: var(--font-size-sm);
+      }
+      
+      table th, table td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+      
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+      }
+      
+      .header-controls {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+    
+    @media (min-width: 600px) and (max-width: 999px) {
+      .role-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (min-width: 1000px) {
+      .role-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       13. ACCESSIBILITY
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      /* Already dark theme */
+    }
+    
+    /* Focus visible for keyboard navigation */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    
+    /* ─────────────────────────────────────────────────────────────────────────────────
+       14. UTILITY CLASSES
+       ───────────────────────────────────────────────────────────────────────────────── */
+    
+    .text-center { text-align: center; }
+    .text-muted { color: var(--text-secondary); }
+    .font-mono { font-family: var(--font-mono); }
+    .font-bold { font-weight: 600; }
+    
+    .mt-xs { margin-top: var(--spacing-xs); }
+    .mt-sm { margin-top: var(--spacing-sm); }
+    .mt-md { margin-top: var(--spacing-md); }
+    .mt-lg { margin-top: var(--spacing-lg); }
+    
+    .mb-xs { margin-bottom: var(--spacing-xs); }
+    .mb-sm { margin-bottom: var(--spacing-sm); }
+    .mb-md { margin-bottom: var(--spacing-md); }
+    .mb-lg { margin-bottom: var(--spacing-lg); }
+    
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: var(--spacing-md) 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                                            -->
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  
+  <header>
+    <h1>⚙️ Daedalus Dashboard</h1>
+    <div class="header-controls">
+      <div class="status-badge" id="status-badge">✅ NOMINAL</div>
+      <div class="last-sync" id="last-sync">Last Sync: now</div>
+    </div>
+  </header>
+  
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB NAVIGATION                                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  
+  <nav class="tab-nav">
+    <input type="radio" id="tab-overview" name="dashboard-tabs" checked>
+    <label for="tab-overview">Overview</label>
+    
+    <input type="radio" id="tab-issues" name="dashboard-tabs">
+    <label for="tab-issues">Issues</label>
+    
+    <input type="radio" id="tab-prs" name="dashboard-tabs">
+    <label for="tab-prs">PRs</label>
+    
+    <input type="radio" id="tab-tasks" name="dashboard-tabs">
+    <label for="tab-tasks">Tasks</label>
+    
+    <input type="radio" id="tab-memory" name="dashboard-tabs">
+    <label for="tab-memory">Memory</label>
+  </nav>
+  
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB CONTENT                                                                      -->
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  
+  <main class="tab-content">
+    
+    <!-- ──────────────────────────────────────────────────────────────────────────────
+         OVERVIEW TAB
+         ────────────────────────────────────────────────────────────────────────────── -->
+    
+    <section id="panel-overview" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📊 Current Phase</div>
+            <div class="card-subtitle">Daedalus System Status</div>
+          </div>
+        </div>
+        <div class="card-content">
+          <div>
+            <strong>Phase 2 — In Progress</strong>
+            <p style="margin-top: var(--spacing-sm); color: var(--text-secondary);">
+              V0.1 complete with 4 PRs and 179 tests ✅<br>
+              Phase 2 launches with 3 modules: Morpheus (D-07), iOS Dashboard (D-09), Mnemosyne (D-08)
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📈 Test Coverage</div>
+          </div>
+        </div>
+        <div class="card-content">
+          <div>
+            <div style="margin-bottom: var(--spacing-sm); display: flex; justify-content: space-between; align-items: center;">
+              <span>V0.1 + Phase 2</span>
+              <span style="font-weight: 600; color: var(--status-nominal);">226/226 ✅ 100%</span>
+            </div>
+            <progress value="226" max="226" style="width: 100%;"></progress>
+          </div>
+          <div style="margin-top: var(--spacing-md);">
+            <div style="margin-bottom: var(--spacing-sm); display: flex; justify-content: space-between; align-items: center;">
+              <span>D-07 Morpheus</span>
+              <span style="font-weight: 600; color: var(--status-nominal);">47/47 ✅</span>
+            </div>
+            <progress value="47" max="47" style="width: 100%;"></progress>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎯 8-Role Status Grid</div>
+        </div>
+        <div class="card-content">
+          <div class="role-grid" id="role-grid">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ──────────────────────────────────────────────────────────────────────────────
+         ISSUES TAB
+         ────────────────────────────────────────────────────────────────────────────── -->
+    
+    <section id="panel-issues" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🐛 GitHub Issues (Phase 2)</div>
+        </div>
+        <div class="card-content" id="issues-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+    
+    <!-- ──────────────────────────────────────────────────────────────────────────────
+         PRS TAB
+         ────────────────────────────────────────────────────────────────────────────── -->
+    
+    <section id="panel-prs" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔀 Pull Requests</div>
+        </div>
+        <div class="card-content">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>PR</th>
+                  <th>Branch</th>
+                  <th>Status</th>
+                  <th>Tests</th>
+                  <th>Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>#11</strong></td>
+                  <td><code>feature/d07-morpheus-memory</code></td>
+                  <td><span class="badge badge-status busy">REVIEW</span></td>
+                  <td><span style="color: var(--status-nominal);">47/47 ✅</span></td>
+                  <td><a href="https://github.com/ocrowleymatt-stack/Life-os/pull/11" target="_blank" style="color: var(--accent);">View</a></td>
+                </tr>
+                <tr>
+                  <td><strong>#10</strong></td>
+                  <td><code>feature/daedalus-operational-core</code></td>
+                  <td><span class="badge badge-status">MERGED</span></td>
+                  <td><span style="color: var(--status-nominal);">68/68 ✅</span></td>
+                  <td><a href="https://github.com/ocrowleymatt-stack/Life-os/pull/10" target="_blank" style="color: var(--accent);">View</a></td>
+                </tr>
+                <tr>
+                  <td><strong>#9</strong></td>
+                  <td><code>feature/import-openmanus-rl</code></td>
+                  <td><span class="badge badge-status">MERGED</span></td>
+                  <td><span style="color: var(--status-nominal);">51/51 ✅</span></td>
+                  <td><a href="https://github.com/ocrowleymatt-stack/Life-os/pull/9" target="_blank" style="color: var(--accent);">View</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ──────────────────────────────────────────────────────────────────────────────
+         TASKS TAB
+         ────────────────────────────────────────────────────────────────────────────── -->
+    
+    <section id="panel-tasks" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚡ Active Workflows</div>
+        </div>
+        <div class="card-content" id="tasks-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+    
+    <!-- ──────────────────────────────────────────────────────────────────────────────
+         MEMORY TAB
+         ────────────────────────────────────────────────────────────────────────────── -->
+    
+    <section id="panel-memory" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">💾 Memory System (Morpheus)</div>
+        </div>
+        <div class="card-content">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+            <div style="background: var(--bg-hover); padding: var(--spacing-md); border-radius: var(--radius-md);">
+              <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">Total Entries</div>
+              <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--accent);">487</div>
+            </div>
+            <div style="background: var(--bg-hover); padding: var(--spacing-md); border-radius: var(--radius-md);">
+              <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">Average TTL</div>
+              <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--accent);">24h</div>
+            </div>
+            <div style="background: var(--bg-hover); padding: var(--spacing-md); border-radius: var(--radius-md);">
+              <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">Latency</div>
+              <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--accent);">12ms</div>
+            </div>
+            <div style="background: var(--bg-hover); padding: var(--spacing-md); border-radius: var(--radius-md);">
+              <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">Storage</div>
+              <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--accent);">2.3MB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Recent Entries</div>
+        </div>
+        <div class="card-content">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Key</th>
+                  <th>Size</th>
+                  <th>TTL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2026-06-10 13:05</td>
+                  <td><code>issue:8:acceptance</code></td>
+                  <td>2.1 KB</td>
+                  <td>24h</td>
+                </tr>
+                <tr>
+                  <td>2026-06-10 13:04</td>
+                  <td><code>pr:11:test_results</code></td>
+                  <td>1.8 KB</td>
+                  <td>48h</td>
+                </tr>
+                <tr>
+                  <td>2026-06-10 13:03</td>
+                  <td><code>role:morpheus:state</code></td>
+                  <td>0.9 KB</td>
+                  <td>∞</td>
+                </tr>
+                <tr>
+                  <td>2026-06-10 13:02</td>
+                  <td><code>context:d07:window</code></td>
+                  <td>5.2 KB</td>
+                  <td>12h</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔍 Memory Search</div>
+        </div>
+        <div class="card-content">
+          <div class="search-box">
+            <input type="search" id="memory-search" placeholder="Search memory by keyword..." aria-label="Search memory entries">
+          </div>
+          <div id="memory-search-results" style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+            Enter a keyword to search (e.g., "morpheus", "issue", "pr")
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  <!-- MOCK DATA (JSON)                                                                 -->
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  
+  <script type="application/json" id="mock-data">
+  {
+    "roles": [
+      {
+        "id": "mnemosyne",
+        "name": "Mnemosyne",
+        "title": "Orchestrator",
+        "color": "#4a90ff",
+        "status": "IDLE",
+        "lastActivity": "15m ago",
+        "health": "NOMINAL",
+        "description": "Coordinate workflows, dispatch roles, archive trajectories"
+      },
+      {
+        "id": "themis",
+        "name": "Themis",
+        "title": "Approval Gate",
+        "color": "#ffd700",
+        "status": "IDLE",
+        "lastActivity": "2h ago",
+        "health": "NOMINAL",
+        "description": "Risk assessment, approval decisions, final veto"
+      },
+      {
+        "id": "aegis",
+        "name": "Aegis",
+        "title": "Safety Blocker",
+        "color": "#ff4444",
+        "status": "IDLE",
+        "lastActivity": "1h ago",
+        "health": "NOMINAL",
+        "description": "Sacred object detection, unsafe pattern blocker"
+      },
+      {
+        "id": "athena",
+        "name": "Athena",
+        "title": "Planner",
+        "color": "#44ff44",
+        "status": "IDLE",
+        "lastActivity": "1d ago",
+        "health": "NOMINAL",
+        "description": "Scope analysis, dependency mapping, risk assessment"
+      },
+      {
+        "id": "chronos",
+        "name": "Chronos",
+        "title": "Tool Manager",
+        "color": "#ff88ff",
+        "status": "BUSY",
+        "lastActivity": "5m ago",
+        "health": "NOMINAL",
+        "description": "Resolve dependencies, build toolchain, environment setup"
+      },
+      {
+        "id": "argus",
+        "name": "Argus",
+        "title": "Reviewer",
+        "color": "#ffaa44",
+        "status": "IDLE",
+        "lastActivity": "10m ago",
+        "health": "NOMINAL",
+        "description": "Test execution, code audit, risk classification"
+      },
+      {
+        "id": "iris",
+        "name": "Iris",
+        "title": "Auditor",
+        "color": "#ff6699",
+        "status": "IDLE",
+        "lastActivity": "3h ago",
+        "health": "NOMINAL",
+        "description": "Log decisions, GitHub audit trail, transparency"
+      },
+      {
+        "id": "morpheus",
+        "name": "Morpheus",
+        "title": "Memory",
+        "color": "#88ddff",
+        "status": "IDLE",
+        "lastActivity": "now",
+        "health": "NOMINAL",
+        "description": "TTL storage, trajectory archive, pattern learning"
+      }
+    ],
+    "issues": [
+      {
+        "number": 8,
+        "title": "D-07 Morpheus — Memory System",
+        "priority": "HIGH",
+        "status": "MERGED",
+        "assignee": "System",
+        "description": "Core memory system with TTL-based storage, context management, history tracking, and semantic retrieval.",
+        "acceptance": 11,
+        "acceptanceTotal": 11
+      },
+      {
+        "number": 9,
+        "title": "D-09 iOS Dashboard — Static HTML UI",
+        "priority": "MEDIUM",
+        "status": "IN_PROGRESS",
+        "assignee": "System",
+        "description": "Static HTML5 dashboard with 5 tabs: Overview, Issues, PRs, Tasks, Memory.",
+        "acceptance": 7,
+        "acceptanceTotal": 10
+      },
+      {
+        "number": 10,
+        "title": "D-08 Mnemosyne — Orchestrator",
+        "priority": "HIGH",
+        "status": "TODO",
+        "assignee": "System",
+        "description": "Multi-agent coordination engine. Listens for issues, chains roles, handles exceptions.",
+        "acceptance": 0,
+        "acceptanceTotal": 8
+      }
+    ],
+    "tasks": [
+      {
+        "id": "task_001",
+        "issue": "#8",
+        "title": "D-07 Morpheus Memory",
+        "currentAgent": "Iris (Auditor)",
+        "progress": 8,
+        "progressTotal": 12,
+        "eta": "~15 min",
+        "steps": [
+          { "name": "Code generation", "status": "DONE" },
+          { "name": "Test execution", "status": "DONE" },
+          { "name": "Risk classification", "status": "DONE" },
+          { "name": "Iris audit", "status": "IN_PROGRESS" },
+          { "name": "Themis approval", "status": "PENDING" },
+          { "name": "GitHub PR", "status": "PENDING" }
+        ]
+      },
+      {
+        "id": "task_002",
+        "issue": "#9",
+        "title": "D-09 iOS Dashboard",
+        "currentAgent": "Code Gen",
+        "progress": 3,
+        "progressTotal": 12,
+        "eta": "~90 min",
+        "steps": [
+          { "name": "Scope analysis", "status": "DONE" },
+          { "name": "Design spec", "status": "IN_PROGRESS" },
+          { "name": "HTML build", "status": "PENDING" },
+          { "name": "CSS styling", "status": "PENDING" },
+          { "name": "Testing", "status": "PENDING" }
+        ]
+      }
+    ]
+  }
+  </script>
+  
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  <!-- JAVASCRIPT — POPULATE DYNAMIC CONTENT                                           -->
+  <!-- ════════════════════════════════════════════════════════════════════════════════ -->
+  
+  <script>
+    // Load mock data
+    const mockDataEl = document.getElementById('mock-data');
+    const mockData = JSON.parse(mockDataEl.textContent);
+    
+    // Update last sync time
+    function updateLastSync() {
+      const now = new Date();
+      document.getElementById('last-sync').textContent = 'Last Sync: now';
+    }
+    
+    // Populate role grid
+    function populateRoleGrid() {
+      const grid = document.getElementById('role-grid');
+      grid.innerHTML = mockData.roles.map(role => `
+        <div class="role-card" style="border-left-color: ${role.color};">
+          <div class="role-name" style="color: ${role.color};">
+            <span style="margin-right: 8px;">●</span>${role.name}
+          </div>
+          <div class="role-meta">
+            <div class="meta-row">
+              <span class="meta-label">Status</span>
+              <span class="meta-value">
+                <span class="status-icon" style="background: ${role.status === 'BUSY' ? '#ffaa00' : role.status === 'BLOCKED' ? '#ff4444' : '#888888'};"></span>
+                ${role.status}
+              </span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Last Activity</span>
+              <span class="meta-value">${role.lastActivity}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Health</span>
+              <span class="meta-value">✅ ${role.health}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Type</span>
+              <span class="meta-value" style="font-size: 12px;">${role.title}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Populate issues list
+    function populateIssuesList() {
+      const list = document.getElementById('issues-list');
+      list.innerHTML = mockData.issues.map(issue => `
+        <div class="card" style="margin-bottom: var(--spacing-md); background: var(--bg-hover); border-left: 3px solid ${
+          issue.priority === 'HIGH' ? '#ff4444' : issue.priority === 'MEDIUM' ? '#ffaa44' : '#44ff44'
+        };">
+          <div style="display: flex; justify-content: space-between; align-items: start; gap: var(--spacing-md); flex-wrap: wrap;">
+            <div style="flex: 1;">
+              <div style="font-weight: 600; margin-bottom: var(--spacing-sm);">
+                <span style="color: var(--text-secondary); font-size: var(--font-size-sm);">#${issue.number}</span>
+                <span style="margin-left: var(--spacing-sm);">${issue.title}</span>
+              </div>
+              <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-sm);">
+                <span class="badge badge-priority ${issue.priority === 'MEDIUM' ? 'medium' : issue.priority === 'LOW' ? 'low' : ''}">${issue.priority}</span>
+                <span class="badge badge-status ${issue.status === 'IN_PROGRESS' ? 'busy' : issue.status === 'BLOCKED' ? 'blocked' : ''}">${issue.status.replace('_', ' ')}</span>
+                <span style="color: var(--text-secondary); font-size: var(--font-size-sm);">Assignee: ${issue.assignee}</span>
+              </div>
+              <div style="color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.5;">
+                ${issue.description}
+              </div>
+              <div style="margin-top: var(--spacing-sm); color: var(--accent); font-size: var(--font-size-sm);">
+                ✅ ${issue.acceptance}/${issue.acceptanceTotal} acceptance criteria
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Populate tasks list
+    function populateTasksList() {
+      const list = document.getElementById('tasks-list');
+      list.innerHTML = mockData.tasks.map(task => `
+        <div class="card" style="margin-bottom: var(--spacing-md);">
+          <div style="margin-bottom: var(--spacing-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+              <div>
+                <div style="font-weight: 600;">Issue ${task.issue}: ${task.title}</div>
+                <div style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-top: var(--spacing-xs);">Current: ${task.currentAgent}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: var(--accent); font-weight: 600;">${task.progress}/${task.progressTotal}</div>
+                <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">ETA: ${task.eta}</div>
+              </div>
+            </div>
+            <progress value="${task.progress}" max="${task.progressTotal}" style="width: 100%;"></progress>
+          </div>
+          <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+            <div style="margin-top: var(--spacing-sm);">
+              ${task.steps.map(step => `
+                <div style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-xs) 0;">
+                  <span style="color: ${step.status === 'DONE' ? '#44ff44' : step.status === 'IN_PROGRESS' ? '#ffaa00' : '#888888'}; font-weight: 600;">
+                    ${step.status === 'DONE' ? '✅' : step.status === 'IN_PROGRESS' ? '🟡' : '⬜'}
+                  </span>
+                  <span>${step.name}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Memory search
+    document.getElementById('memory-search').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const results = document.getElementById('memory-search-results');
+      
+      if (!query) {
+        results.textContent = 'Enter a keyword to search (e.g., "morpheus", "issue", "pr")';
+        return;
+      }
+      
+      const mockMemory = [
+        { key: 'issue:9:title', size: '0.8 KB' },
+        { key: 'issue:9:description', size: '2.1 KB' },
+        { key: 'issue:9:acceptance', size: '0.5 KB' },
+        { key: 'pr:11:test_results', size: '1.8 KB' },
+        { key: 'role:morpheus:state', size: '0.9 KB' },
+        { key: 'context:d09:window', size: '4.2 KB' }
+      ];
+      
+      const matches = mockMemory.filter(m => 
+        m.key.toLowerCase().includes(query) || m.size.toLowerCase().includes(query)
+      );
+      
+      if (matches.length === 0) {
+        results.textContent = `No results for "${query}"`;
+        return;
+      }
+      
+      results.innerHTML = `<strong>${matches.length} result${matches.length > 1 ? 's' : ''}:</strong><br>` + 
+        matches.map(m => `<div style="margin-top: var(--spacing-sm); font-family: var(--font-mono);">• ${m.key} (${m.size})</div>`).join('');
+    });
+    
+    // Initialize
+    updateLastSync();
+    populateRoleGrid();
+    populateIssuesList();
+    populateTasksList();
+    
+    // Update last sync every minute
+    setInterval(updateLastSync, 60000);
+  </script>
+</body>
+</html>
